@@ -51,26 +51,37 @@
   </div>
 
   <script>
-    const telegram = window.Telegram.WebApp;
-    telegram.ready();
+    const telegram = window.Telegram?.WebApp || {};
+    telegram.ready?.();
 
     const userId = telegram.initDataUnsafe?.user?.id;
+    console.log("Telegram user ID:", userId);
+    alert("Ваш Telegram ID: " + userId);
 
-    document.getElementById("payBtn").addEventListener("click", () => {
-      fetch("https://pantelmed.onrender.com/check_payment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: userId })
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (data.paid) {
-            document.getElementById("paidContent").style.display = "block";
-          } else {
-            alert("Платіж не знайдено. Спробуй через кілька хвилин або перевір адресу.");
-          }
-        });
-    });
+    const payBtn = document.getElementById("payBtn");
+
+    if (!userId) {
+      payBtn.disabled = true;
+      payBtn.innerText = "ID не передано з Telegram";
+    } else {
+      payBtn.addEventListener("click", () => {
+        fetch("https://pantelmed.onrender.com/check_payment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id: userId })
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data.paid) {
+              document.getElementById("paidContent").style.display = "block";
+              payBtn.innerText = "✅ Оплата знайдена";
+              payBtn.disabled = true;
+            } else {
+              alert("❌ Платіж не знайдено. Спробуйте ще через хвилину або перевір адресу.");
+            }
+          });
+      });
+    }
   </script>
 </body>
 </html>
